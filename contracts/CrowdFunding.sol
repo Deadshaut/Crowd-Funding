@@ -33,6 +33,51 @@ contract CrowdFunding {
     uint round;
   }
 
+// Add new Owning Entity
+function addOwningEntity(bytes32 _name, bytes32 _phoneNumber) public view returns(bool success) {
+  // Check if an owner exist with same phone number
+  for(uint i = 0; i < owners.length; i++) {
+    if(owners[i].name == _name){
+      return false;
+    }
+  }
+  OwningEntity private owner;
+  owner.name = _name;
+  owner.phoneNumber = _phoneNumber;
+  owners.push(owner);
+  return true;
+}
+
+// Add new project
+function addNewProject(bytes32 _projectName, bytes32 _projectDescription, bytes32 _projectLink, uint _targetAmount, uint _startDate, uint _endDate, bytes32 _ownerName) public view returns(bool success){
+    Project private project;
+    Round[] private rounds;
+    Round private firstRound;
+    // Adding round 0 info
+    // NOTE: Redundant value of projectName in round info
+    firstRound.projectName = _projectName;
+    firstRound.startDate = _startDate;
+    firstRound.endDate = _endDate;
+    firstRound.targetAmount = _targetAmount;
+    firstRound.collectedAmount = 0;
+    rounds.push(firstRound);
+    // Populating project data
+    project.projectName = _projectName;
+    project.projectDescription = _projectDescription;
+    project.projectLink = _projectLink;
+    // NOTE: intiliasing round number with 0
+    project.currentRound = 0;
+    project.startDate = _startDate;
+    project.rounds = rounds;
+    // Adding project Details to owner
+    for(uint i = 0; i < owners.length; i++) {
+      if(owners[i].name == _ownerName){
+        owners[i].projectNames.push(_projectName);
+        break;
+      }
+    }
+    return true;
+} 
 //Get all projects owned by a single org/entity
 function getAllProjectsForAOwningEntity(bytes32 _ownerName) public view returns(bytes32[] memory) {
   uint length = owners.length;
@@ -71,6 +116,7 @@ function getTotalFundingRoundWise(bytes32 _projectName) public view returns(uint
   uint[] memory rounds = new uint[](size);
   uint[] memory funds = new uint[](size);
   uint j = size-1;
+  //NOTE: there is no need of returning rounds array, as we can get it by it's position in array
   while (j >= 0) {
     funds[i] = projects[i].rounds[j].collectedAmount;
     rounds[i] = j;
