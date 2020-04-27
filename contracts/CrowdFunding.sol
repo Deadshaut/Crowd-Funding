@@ -77,7 +77,29 @@ function addNewProject(bytes32 _projectName, bytes32 _projectDescription, bytes3
       }
     }
     return true;
-} 
+}
+function editProjectAddNewRound(bytes32 _projectName, bytes32 _projectDescription, bytes32 _projectLink, uint _targetAmount, uint _startDate, uint _endDate, bytes32 _ownerName) public view returns (bool success) {
+    for( uint i = 0; i < projects.length; i++ ) {
+      if(projects[i].projectName == _projectName) {
+        numberOfRounds = projects[i].rounds.length;
+        //Checking if end date of previous round is less than starting date of new round
+        if(projects[i].rounds[numberOfRounds - 1].endDate < _startDate) {
+          Round memory newRound = new Round;
+          newRound.projectName = _projectName;
+          newRound.startDate = _startDate;
+          newRound.endDate = _endDate;
+          newRound.targetAmount = _targetAmount;
+          newRound.collectedAmount = 0;
+          projects[i].rounds.push(newRound);
+          return true;
+        }
+        else {
+          return false;
+        }
+      }
+    }
+    return false;
+}
 //Get all projects owned by a single org/entity
 function getAllProjectsForAOwningEntity(bytes32 _ownerName) public view returns(bytes32[] memory) {
   uint length = owners.length;
