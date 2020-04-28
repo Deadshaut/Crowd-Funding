@@ -50,9 +50,9 @@ function addOwningEntity(bytes32 _name, bytes32 _phoneNumber) public view return
 
 // Add new project
 function addNewProject(bytes32 _projectName, bytes32 _projectDescription, bytes32 _projectLink, uint _targetAmount, uint _startDate, uint _endDate, bytes32 _ownerName) public view returns(bool success){
-    Project private project;
-    Round[] private rounds;
-    Round private firstRound;
+    Project memory project;
+    Round[] memory rounds;
+    Round memory firstRound;
     // Adding round 0 info
     // NOTE: Redundant value of projectName in round info
     firstRound.projectName = _projectName;
@@ -78,19 +78,23 @@ function addNewProject(bytes32 _projectName, bytes32 _projectDescription, bytes3
     }
     return true;
 }
+//Edit project to add new round of funding
 function editProjectAddNewRound(bytes32 _projectName, bytes32 _projectDescription, bytes32 _projectLink, uint _targetAmount, uint _startDate, uint _endDate, bytes32 _ownerName) public view returns (bool success) {
     for( uint i = 0; i < projects.length; i++ ) {
       if(projects[i].projectName == _projectName) {
-        numberOfRounds = projects[i].rounds.length;
+        uint numberOfRounds = projects[i].rounds.length;
         //Checking if end date of previous round is less than starting date of new round
         if(projects[i].rounds[numberOfRounds - 1].endDate < _startDate) {
-          Round memory newRound = new Round;
+          Round memory newRound;
           newRound.projectName = _projectName;
           newRound.startDate = _startDate;
           newRound.endDate = _endDate;
           newRound.targetAmount = _targetAmount;
           newRound.collectedAmount = 0;
           projects[i].rounds.push(newRound);
+          project[i].projectDescription = _projectDescription;
+          project[i].projectLink = _projectLink;
+          project[i].currentRound++;
           return true;
         }
         else {
@@ -99,6 +103,30 @@ function editProjectAddNewRound(bytes32 _projectName, bytes32 _projectDescriptio
       }
     }
     return false;
+}
+
+//Edit project to edit current round of funding
+function editProjectEditCurrentRound(bytes32 _projectName, bytes32 _projectDescription, bytes32 _projectLink, uint _targetAmount, uint _startDate, uint _endDate, bytes32 _ownerName, bytes32 _currentDate) public view returns(bool success){
+  for( uint i = 0; i < projects.length; i++ ) {
+    if(projects[i].projectName == _projectName) {
+      uint currentRound = projects[i].rounds.length - 1;
+      // NOTE : need to find a way to check timeStamp and restrict users from editing start and end dates of current round from UI
+      //Checking if end date of previous round is less than starting date of new round
+      if(projects[i].rounds[currentRound].endDate < _startDate) {
+        projects[i].rounds[currentRound].projectName = _projectName;
+        projects[i].rounds[currentRound].startDate = _startDate;
+        projects[i].rounds[currentRound].endDate = _endDate;
+        projects[i].rounds[currentRound].targetAmount = _targetAmount;
+        project[i].projectDescription = _projectDescription;
+        project[i].projectLink = _projectLink;
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+  }
+  return false;
 }
 //Get all projects owned by a single org/entity
 function getAllProjectsForAOwningEntity(bytes32 _ownerName) public view returns(bytes32[] memory) {
